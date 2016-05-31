@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: A starting point for interactivity</title>
+		<script type="text/javascript" src="../d3/d3.js"></script>
+		<style type="text/css">
+			svg text {
+				pointer-events: none;
+			}
+			rect {
+                -moz-transition: all 0.3s;
+                -o-transition: all 0.3s;
+			    -webkit-transition: all 0.3s;
+				transition: all .3s;
+		    }
+
+
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+
+			.title {
+				font-size: 25px;
+			}
+
+			#tooltip {
+				position: absolute;
+				width: 85px;
+				height: auto;
+				padding: 10px;
+				background-color: blue;
+				color: white;
+                -webkit-border-radius: 10px;
+                -moz-border-radius: 10px;
+                border-radius: 10px;
+                -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4); -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4); box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4); pointer-events: none;
+            }
+            #tooltip.hidden {
+                display: none;
+            }
+            #tooltip p { 
+            	margin: 0;
+                font-family: sans-serif; 
+                font-size: 16px;
+                line-height: 20px;
+            }
+
+
+		</style>
+	</head>
+	<body>
+		<div id="tooltip" class="hidden">
+			<p><span id="heading"><strong></strong></p> 
+			<p><span id="value"></span> inches</p>
+		</div>
+		<svg class="chart"></svg>
+		<script type="text/javascript">
+
+			
+			var margin = {top: 40, right: 30, bottom: 30, left: 40},
+    			width = 960 - margin.left - margin.right,
+    			height = 500 - margin.top - margin.bottom;
+    		var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+			
+			var precipitation = [ 3.35, 3.27, 4.33, 3.74, 3.5, 3.66, 3.43, 3.35, 3.43, 3.94,3.98, 3.78 ];
+
+			var dataset = precipitation
+
+			var xScale = d3.scale.ordinal()
+							.domain(months)
+							.rangeBands([0, width], 0.1);
+
+			var yScale = d3.scale.linear()
+							.domain([0, d3.max(precipitation)])
+							.range([0, height]);
+			
+			//Define X axis
+			var xAxis = d3.svg.axis()
+							  .scale(xScale)
+							  .orient("bottom");
+
+
+			//Define Y axis
+			var yAxis = d3.svg.axis()
+							.scale(d3.scale.linear()
+							.domain([0, d3.max(precipitation)])
+							.range([height, 0]))
+						.orient("left");
+
+
+
+			//Create SVG element
+			var svg = d3.select(".chart")
+    			.attr("width", width + margin.left + margin.right)
+    			.attr("height", height + margin.top + margin.bottom)
+  				.append("g")
+    			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    		//Create X axis
+			svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + (height) + ")")
+				.call(xAxis);
+			
+			//Create Y axis
+			svg.append("g")
+				.attr("class", "y axis")
+				.call(yAxis);
+
+			//Title
+			svg.append("text")
+				.attr("class", "title")
+        		.attr("x", (width / 2))             
+        		.attr("y", 0 - (margin.top / 2))
+        		.attr("text-anchor", "middle")  
+        		.text("Rainfall Per Month: Boston 2015");
+
+			//Create bars
+			svg.selectAll("rect")
+			   .data(dataset)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return xScale(months[i]);
+			   })
+			   .attr("y", function(d) {
+			   		return height - yScale(d);
+			   })
+			   .attr("width", xScale.rangeBand())
+			   .attr("height", function(d) {
+			   		return yScale(d);
+			   })
+			   .attr("fill", function(d) {
+					return "blue";
+			   })	
+			   .on("mouseover", function(d) {
+			   		var xPosition = parseFloat(d3.select(this).attr("x")) + 
+xScale.rangeBand() / 2;
+					var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + height / 2;
+			  		d3.select("#tooltip")
+			  		  .style("left", xPosition + "px")
+			  		  .style("top", yPosition + "px")
+			  		  .select("#value")
+			  		  .text(d);
+
+			  		d3.select("#tooltip").classed("hidden", false);
+			  		d3.select(this)
+			  		  .attr("fill", "orange");
+			   })
+			   .on("mouseout", function() {
+			   		d3.select("#tooltip").classed("hidden", true);
+			   		d3.select(this)
+			   		  .transition()
+			   		  .duration(250)
+			   		  .attr("fill", "blue");
+			   })
+
+			   	
+		</script>
+	</body>
+</html>
